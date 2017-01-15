@@ -1,0 +1,20 @@
+
+
+main      -> SteamCode 
+
+SteamCode -> S:*  
+
+
+
+S -> [\s]:+			{% token  %}
+NL -> "\n" | "\n\r"  
+               
+
+
+
+@{%
+	function token(d) {
+		return d[0].join("");
+	}
+%}
+

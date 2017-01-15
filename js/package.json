@@ -1,0 +1,20 @@
+{
+	"name": "steamvm",
+	"version": "0.1.0",
+	"description": "SteamVM",
+	"main": "js/main.js",
+	"dependencies": {
+		"nearley" : "^2.7.10"
+	},
+	"devDependencies": {
+		"mocha": "^3.1.2"
+		
+	},
+	"scripts": {
+		"compileGrammar": "node ./node_modules/nearley/bin/nearleyc.js steam-grammar.me -o ./steam-grammar-generated.js -e SteamGrammar",
+		"runTest": "node test/run.js ./test",
+		"test":"npm run compileGrammar | npm run runTest"
+	},
+	"author": "Denys Viliuzhanin(24-08-1986) <dvilyuzhanin@gmail.com>",
+	"license": "GPLv3"
+}
