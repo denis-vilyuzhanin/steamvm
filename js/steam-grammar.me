@@ -1,20 +1,77 @@
 
-
 main      -> SteamCode 
 
-SteamCode -> S:*  
+SteamCode -> StatementList                   {% object('SteamProgram', 0)%}
+
+StatementList -> ( Statement | Blank ) StatementList:?                  {% object('SteamCode', 0)%}
+
+Statement -> Declaration | Expression  
+StatementEnd -> S:? NL | ";"
+
+Declaration -> "Foo"   {% string("declaration", 0) %}
+
+Expression -> "Bar"          {% string("expression", 0) %}
 
 
-
-S -> [\s]:+			{% token  %}
-NL -> "\n" | "\n\r"  
+Blank -> (S | NL):+                      {% ignore %}
+ 
+S -> [ \t]:+			                 {% string("S", 0) %}
+NL -> "\n" | "\r\n"                      {% string("NL", 0) %}
                
 
 
 
 @{%
-	function token(d) {
-		return d[0].join("");
+
+	function wrapErrors(type, code) {
+		return function(d, location, reject) {
+			try {
+				return code(d, location, reject);
+			} catch (e) {
+				throw new Error("Error in " + type + "( at " + location + ")" + ": " + e);
+			}
+		}
 	}
+	function ignore(d, location, reject) {
+		return reject;
+	}
+	function string(type, index) {
+		return wrapErrors(type, function(d) {
+			var value = d[index]; 
+			if (Array.isArray(value)) {
+				value = value.join('');
+			}
+			return value;
+		})
+	}
+	
+	
+	function token(type, index) {
+		return function (d, location) {
+			return {
+				type: type,
+				location: location,
+				value: d[index].join("")
+			}
+		} 
+	}
+	
+	function object(type, index) {
+		return function(d, location) {
+			return {
+				type: type,
+				location: location,
+				value: d[index]
+			}
+		}
+	}
+
+	function trace(func) {
+		return function(d, location, reject) {
+			console.log(location, ":", d);
+			return func(d, location, reject);
+		}
+	}	
+	
 %}
 
