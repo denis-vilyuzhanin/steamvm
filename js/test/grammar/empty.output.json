@@ -1,1 +1,5 @@
-[ [ [ [] ] ] ]
+ {
+ 	"type": "SteamCode", 
+ 	"location": 0, 
+ 	"statements": [] 
+ }

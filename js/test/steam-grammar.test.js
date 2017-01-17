@@ -45,6 +45,7 @@ function parseAndCompare(inputFile, outputFile) {
 		var expectedParsedTree = JSON.parse(fs.readFileSync(outputFile, 'utf8'));
 		var parser = new nearley.Parser(grammar.ParserRules, grammar.ParserStart);
 		parser.feed(steamCode);
-		assert.deepEqual(expectedParsedTree, parser.results);
+		assert.equal(1, parser.results.length);
+		assert.deepEqual(expectedParsedTree, parser.results[0]);
 	}
 }

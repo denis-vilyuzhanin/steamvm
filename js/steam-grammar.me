@@ -1,19 +1,23 @@
 
-main      -> SteamCode 
+main      -> SteamCode                                 {% single() %}                                 
 
-SteamCode -> StatementList                   {% object('SteamProgram', 0)%}
+SteamCode -> null                                      {% object('SteamCode', (obj, d) => obj.statements = [])%}
+           | StatementList                             {% object('SteamCode', (obj, d) => obj.statements = d[0])%}
 
-StatementList -> ( Statement | Blank ) StatementList:?                  {% object('SteamCode', 0)%}
+StatementList -> Empty
+               | Statement                             
+               | Statement StatementList               {% recursion() %}    
 
-Statement -> Declaration | Expression  
+Statement -> Declaration                               {% single() %}
+           | Expression                                {% single() %}
 StatementEnd -> S:? NL | ";"
 
-Declaration -> "Foo"   {% string("declaration", 0) %}
+Declaration -> "Foo"                                    {% object('Declaration', (obj, d) => obj.name = d[0]) %}
 
-Expression -> "Bar"          {% string("expression", 0) %}
+Expression -> "Bar"                                     {% object('Expression', (obj, d) => obj.name = d[0]) %}
 
 
-Blank -> (S | NL):+                      {% ignore %}
+Empty -> (S | NL):+                      {% ignore %}
  
 S -> [ \t]:+			                 {% string("S", 0) %}
 NL -> "\n" | "\r\n"                      {% string("NL", 0) %}
@@ -32,9 +36,11 @@ NL -> "\n" | "\r\n"                      {% string("NL", 0) %}
 			}
 		}
 	}
+	
 	function ignore(d, location, reject) {
 		return reject;
 	}
+	
 	function string(type, index) {
 		return wrapErrors(type, function(d) {
 			var value = d[index]; 
@@ -47,31 +53,55 @@ NL -> "\n" | "\r\n"                      {% string("NL", 0) %}
 	
 	
 	function token(type, index) {
-		return function (d, location) {
+		return wrapErrors(type, function (d, location) {
 			return {
 				type: type,
 				location: location,
 				value: d[index].join("")
 			}
-		} 
+		});
 	}
 	
-	function object(type, index) {
-		return function(d, location) {
-			return {
+	function object(type, mapValues) {
+		return wrapErrors(type, function(d, location) {
+			var object = {
 				type: type,
-				location: location,
-				value: d[index]
+				location: location
 			}
-		}
+			mapValues(object, d);
+			return object;
+		});
+	}
+	
+	function rightRecursion() {
+		return wrapErrors('rightRecursion', function(d) {
+			var left
+		});
 	}
 
-	function trace(func) {
-		return function(d, location, reject) {
-			console.log(location, ":", d);
-			return func(d, location, reject);
-		}
+	function single(type) {
+		return wrapErrors(type, function(d) {
+			if (d.length > 1) {
+				throw new Error('Ambiguity delected: ' + d);
+			}
+			return d[0];
+		});
 	}	
+	
+	function recursion(type) {
+		return wrapErrors(type, function(d){
+			var list = [];
+			for(var i = 0; i < d.length; i++) {
+				var value = d[i];
+				if (Array.isArray(value)) {
+					list = list.concat(value);
+				} else {
+					list.push(value);
+				}
+			}
+			return list;
+		});
+	}
 	
 %}
 
